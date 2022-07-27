@@ -82,14 +82,14 @@ bool at_eof() {
 Token* new_token(TokenKind kind, Token* cur, char* str, int len) {
     Token* tok = calloc(1, sizeof(Token));
     tok->kind = kind;
+    tok->str = str;
     tok->len = len;
-    if (len > 0) {
-        char* s = calloc(len, sizeof(char));
-        strncpy(s, str, len);
-        tok->str = s;
-    }
     cur->next = tok;
     return tok;
+}
+
+bool starts_with(char* p, char* q){
+    return memcmp(p, q, strlen(q)) == 0;
 }
 
 Token* tokenize(char* p) {
@@ -103,25 +103,24 @@ Token* tokenize(char* p) {
             continue;
         }
         if (
-            strncmp(p, "==", 2) == 0 ||
-            strncmp(p, "!=", 2) == 0 ||
-            strncmp(p, ">=", 2) == 0 ||
-            strncmp(p, "<=", 2) == 0
+            starts_with(p, "==") ||
+            starts_with(p, "!=") ||
+            starts_with(p, ">=") ||
+            starts_with(p, "<=")
             ) {
             cur = new_token(TK_RESERVED, cur, p, 2);
             p += 2;
             continue;
         }
-        if (*p == '+' || *p == '-' || 
-            *p == '*' || *p == '/' || 
-            *p == '>' || *p == '<' ||
-            *p == '(' || *p == ')') {
+        if (strchr("+-*/()<>", *p)) {
             cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
         }
         if (isdigit(*p)) {
             cur = new_token(TK_NUM, cur, p, 0);
+            char *q = p;
             cur->val = strtol(p, &p, 10);
+            cur->len = p - q;
             continue;
         }
         error_at(p, "Could not tokenize");

@@ -237,10 +237,10 @@ Node* mul() {
 Node* unary() {
     // 単項演算子
     if (consume("+")) {
-        return primary();
+        return unary();
     }
     if (consume("-")) {
-        return new_node(ND_SUB, new_node_num(0), primary());
+        return new_node(ND_SUB, new_node_num(0), unary());
     }
 
     return primary();

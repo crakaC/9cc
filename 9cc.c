@@ -25,9 +25,15 @@ struct Token {
 // 現在着目しているトークン
 Token* token;
 
-void error(char* fmt, ...) {
+char *user_input;
+
+void error_at(char *loc, char *fmt, ...){
     va_list ap;
     va_start(ap, fmt);
+    int pos = loc - user_input;
+    fprintf(stderr, "%s\n", user_input);
+    fprintf(stderr, "%*s", pos, " ");
+    fprintf(stderr, "^ ");
     vfprintf(stderr, fmt, ap);
     fprintf(stderr, "\n");
     exit(1);
@@ -47,7 +53,7 @@ bool consume(char op) {
 // それ以外の場合にはエラーになる。
 void expect(char op) {
     if (token->kind != TK_RESERVED || token->str[0] != op) {
-        error("'%c' is expected but got %c", op, token->str[0]);
+        error_at(token->str, "Unexpected token. '%c' is expected.", op);
     }
     token = token->next;
 }
@@ -56,7 +62,7 @@ void expect(char op) {
 // 数値でなければエラーになる。
 int expect_number() {
     if (token->kind != TK_NUM) {
-        error("It's not a number. '%s'", token->str);
+        error_at(token->str, "It's not a number. '%s'", token->str);
     }
     int val = token->val;
     token = token->next;
@@ -95,7 +101,7 @@ Token* tokenize(char* p) {
             cur->val = strtol(p, &p, 10);
             continue;
         }
-        error("Could not tokenize");
+        error_at(p, "Could not tokenize");
     }
     new_token(TK_EOF, cur, p);
     return head.next;
@@ -107,6 +113,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    user_input = argv[1];
     token = tokenize(argv[1]);
 
 

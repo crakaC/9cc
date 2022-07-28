@@ -5,6 +5,11 @@ Token* token;
 
 char* user_input;
 
+void error(char* msg) {
+    fprintf(stderr, msg);
+    exit(1);
+}
+
 void error_at(char* loc, char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
@@ -29,6 +34,15 @@ bool consume(char* op) {
     return true;
 }
 
+Token* consume_ident() {
+    if (token->kind != TK_IDENT) {
+        return NULL;
+    }
+    Token* cur = token;
+    token = token->next;
+    return cur;
+}
+
 // 次のトークンが期待している記号のときには、トークンを1つ読み進める。
 // それ以外の場合にはエラーになる。
 void expect(char* op) {
@@ -51,6 +65,10 @@ int expect_number() {
     return val;
 }
 
+bool at_eof() {
+    return token->kind == TK_EOF;
+}
+
 // 新しいトークンを作成してcurにつなげる
 Token* new_token(TokenKind kind, Token* cur, char* str, int len) {
     Token* tok = calloc(1, sizeof(Token));
@@ -65,7 +83,7 @@ bool starts_with(char* p, char* q) {
     return memcmp(p, q, strlen(q)) == 0;
 }
 
-Token* tokenize(char* p) {
+void tokenize(char* p) {
     Token head;
     head.next = NULL;
     Token* cur = &head;
@@ -85,8 +103,12 @@ Token* tokenize(char* p) {
             p += 2;
             continue;
         }
-        if (strchr("+-*/()<>", *p)) {
+        if (strchr("+-*/()<>=", *p)) {
             cur = new_token(TK_RESERVED, cur, p++, 1);
+            continue;
+        }
+        if ('a' <= *p && *p <= 'z') {
+            cur = new_token(TK_IDENT, cur, p++, 1);
             continue;
         }
         if (isdigit(*p)) {
@@ -96,8 +118,12 @@ Token* tokenize(char* p) {
             cur->len = p - q;
             continue;
         }
+        if (*p == ';') {
+            cur = new_token(TK_EOF, cur, p, 0);
+            break;
+        }
         error_at(p, "Could not tokenize");
     }
     new_token(TK_EOF, cur, p, 0);
-    return head.next;
+    token = head.next;
 }

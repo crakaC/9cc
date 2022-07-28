@@ -119,8 +119,8 @@ void tokenize(char* p) {
             continue;
         }
         if (*p == ';') {
-            cur = new_token(TK_EOF, cur, p, 0);
-            break;
+            cur = new_token(TK_RESERVED, cur, p++, 1);
+            continue;
         }
         error_at(p, "Could not tokenize");
     }

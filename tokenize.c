@@ -6,7 +6,7 @@ Token* token;
 char* user_input;
 
 void error(char* msg) {
-    fprintf(stderr, msg);
+    fprintf(stderr, "error: %s", msg);
     exit(1);
 }
 

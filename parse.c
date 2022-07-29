@@ -1,5 +1,19 @@
 #include"9cc.h"
 
+Node* code[100];
+// ローカル変数
+LVar* locals;
+
+Node* stmt();
+Node* expr();
+Node* assign();
+Node* equality();
+Node* relational();
+Node* add();
+Node* mul();
+Node* unary();
+Node* primary();
+
 Node* new_node(NodeKind kind, Node* lhs, Node* rhs) {
     Node* node = calloc(1, sizeof(Node));
     node->kind = kind;
@@ -15,20 +29,6 @@ Node* new_node_num(int val) {
     return node;
 }
 
-void program();
-Node* stmt();
-Node* expr();
-Node* assign();
-Node* equality();
-Node* relational();
-Node* add();
-Node* mul();
-Node* unary();
-Node* primary();
-
-Node* code[100];
-// ローカル変数
-LVar* locals;
 LVar* find_lvar(Token* tok) {
     for (LVar* var = locals; var; var = var->next) {
         if (var->len == tok->len && !memcmp(tok->str, var->name, var->len)) {

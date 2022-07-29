@@ -67,6 +67,15 @@ struct Node {
     int offset;// kindがND_LVARのとき、RBPからのoffsetをローカル変数のアドレスとして使う
 };
 
+typedef struct LVar LVar;
+// ローカル変数の型
+struct LVar {
+    LVar* next; // 次の変数かNULL
+    char* name; // 変数名
+    int len; // 変数名の長さ
+    int offset; // RBPからのオフセット
+};
+
 extern Node* code[100];
 void program();
 

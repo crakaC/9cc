@@ -18,6 +18,7 @@ assert(){
 assert 1 'a = 1;'
 assert 3 'a = b = 1 + 2;'
 assert 14 "a = 3; b = 5 * 6 - 8; a + b / 2;"
+assert 5 "abc = 2 + 3;"
 
 assert 0 '0;'
 assert 42 '42;'

@@ -34,6 +34,14 @@ bool consume(char* op) {
     return true;
 }
 
+bool consume_token(TokenKind kind) {
+    if (token->kind != kind) {
+        return false;
+    }
+    token = token->next;
+    return true;
+}
+
 Token* consume_ident() {
     if (token->kind != TK_IDENT) {
         return NULL;
@@ -93,6 +101,11 @@ void tokenize(char* p) {
             p++;
             continue;
         }
+        if (strncmp(p, "return", 6) == 0 && !isalnum(p[6])) {
+            cur = new_token(TK_RETURN, cur, p, 6);
+            p += 6;
+            continue;
+        }
         if (
             starts_with(p, "==") ||
             starts_with(p, "!=") ||
@@ -107,10 +120,10 @@ void tokenize(char* p) {
             cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
         }
-        if ('a' <= *p && *p <= 'z') {
+        if (isalpha(*p)) {
             cur = new_token(TK_IDENT, cur, p, 0);
             char* q = p;
-            while ('a' <= *p && *p <= 'z') {
+            while (isalnum(*p)) {
                 p++;
             }
             cur->len = p - q;

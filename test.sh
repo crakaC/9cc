@@ -15,6 +15,9 @@ assert(){
         exit 1
     fi
 }
+assert 1 "return 1;"
+assert 3 "a = 1; b = 2; return a + b;"
+
 assert 1 'a = 1;'
 assert 3 'a = b = 1 + 2;'
 assert 14 "a = 3; b = 5 * 6 - 8; a + b / 2;"

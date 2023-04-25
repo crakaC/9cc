@@ -1,16 +1,24 @@
-.DEFAULT_GOAL:=9cc
+.DEFAULT_GOAL := 9cc
 
-CFLAGS=-std=c11 -g -static
-SRCS=$(wildcard *.c)
-OBJS=$(SRCS:.c-=.o)
+CFLAGS = -std=c11 -g -static
+
+SRCDIR = src/
+OBJDIR = obj/
+
+SRCS = $(shell basename -a $(SRCDIR)*.c)
+OBJS = $(SRCS:%.c=$(OBJDIR)%.o)
 
 define docker-run
 	@docker run --platform linux/x86_64 --rm -v `pwd`:/9cc -w /9cc $(1) compilerbook
 endef
 
-$(OBJS): 9cc.h
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
 
-9cc: $(OBJS)
+$(OBJDIR)%.o: $(SRCDIR)%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+9cc: $(OBJDIR) $(OBJS)
 	$(CC) -o 9cc $(OBJS) $(LDFLAGS)
 
 .PHONY: test
@@ -28,4 +36,4 @@ docker:
 
 .PHONY: clean
 clean:
-	rm -f 9cc *.o *~ tmp*
+	@rm -rf 9cc tmp* $(OBJDIR)

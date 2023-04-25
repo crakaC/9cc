@@ -91,6 +91,14 @@ bool starts_with(char* p, char* q) {
     return memcmp(p, q, strlen(q)) == 0;
 }
 
+void dump() {
+    for (Token* t = token; t; t = t->next) {
+        char* s = calloc(t->len, sizeof(char));
+        strncpy(s, t->str, t->len);
+        fprintf(stderr, "std: %s, len: %d, kild: %d\n", s, t->len, t->kind);
+    }
+}
+
 void tokenize(char* p) {
     Token head;
     head.next = NULL;
@@ -144,4 +152,5 @@ void tokenize(char* p) {
     }
     new_token(TK_EOF, cur, p, 0);
     token = head.next;
+    // dump();
 }

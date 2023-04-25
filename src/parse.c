@@ -1,4 +1,4 @@
-#include"9cc.h"
+#include "9cc.h"
 
 Node* code[100];
 // ローカル変数

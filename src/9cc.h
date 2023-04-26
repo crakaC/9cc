@@ -13,6 +13,10 @@
 typedef enum {
     TK_RESERVED, // 記号
     TK_RETURN,   // return
+    TK_IF,       // if
+    TK_ELSE,     // else
+    TK_FOR,      // for
+    TK_WHILE,    // while
     TK_IDENT,    // 識別子
     TK_NUM,      // 整数
     TK_EOF,      // 入力終わり
@@ -58,6 +62,10 @@ typedef enum {
     ND_LVAR,    // ローカル変数
     ND_NUM,     // 整数
     ND_RETURN,  // return
+    ND_IF,      // if
+    ND_ELSE,    // else
+    ND_FOR,     // for
+    ND_WHILE,   // while
 } NodeKind;
 
 typedef struct Node Node;
@@ -68,6 +76,7 @@ struct Node {
     Node* rhs; // 右辺
     int val;   // kindがND_NUMのときに使う
     int offset;// kindがND_LVARのとき、RBPからのoffsetをローカル変数のアドレスとして使う
+    int label_number; // if文で使用するラベル番号
 };
 
 typedef struct LVar LVar;

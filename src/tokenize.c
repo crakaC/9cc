@@ -95,8 +95,19 @@ void dump() {
     for (Token* t = token; t; t = t->next) {
         char* s = calloc(t->len, sizeof(char));
         strncpy(s, t->str, t->len);
-        fprintf(stderr, "str: %s, len: %d, kind: %d\n", s, t->len, t->kind);
+        fprintf(stderr, "\"%s\", len: %d, kind: %d\n", s, t->len, t->kind);
     }
+}
+
+void drop_space(char** p) {
+    while (**p && isspace(**p)) {
+        (*p)++;
+    }
+}
+
+bool can_tokenize(char* p, char* word) {
+    int len = strlen(word);
+    return starts_with(p, word) && !isalnum(p[len]);
 }
 
 void tokenize(char* p) {
@@ -105,13 +116,23 @@ void tokenize(char* p) {
     Token* cur = &head;
 
     while (*p) {
-        if (isspace(*p)) {
-            p++;
-            continue;
+        drop_space(&p);
+        if (*p == '\0') {
+            break;
         }
-        if (strncmp(p, "return", 6) == 0 && !isalnum(p[6])) {
+        if (can_tokenize(p, "return")) {
             cur = new_token(TK_RETURN, cur, p, 6);
             p += 6;
+            continue;
+        }
+        if (can_tokenize(p, "if")) {
+            cur = new_token(TK_IF, cur, p, 2);
+            p += 2;
+            continue;
+        }
+        if (can_tokenize(p, "else")) {
+            cur = new_token(TK_ELSE, cur, p, 4);
+            p += 4;
             continue;
         }
         if (

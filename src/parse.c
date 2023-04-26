@@ -14,6 +14,9 @@ Node* mul();
 Node* unary();
 Node* primary();
 
+// if文用ラベル通し番号
+int label_sequence_number = 0;
+
 Node* new_node(NodeKind kind, Node* lhs, Node* rhs) {
     Node* node = calloc(1, sizeof(Node));
     node->kind = kind;
@@ -49,13 +52,25 @@ void program() {
 Node* stmt() {
     Node* node;
     if (consume_token(TK_RETURN)) {
-        node = calloc(1, sizeof(Node));
-        node->kind = ND_RETURN;
+        node = new_node(ND_RETURN, expr(), NULL);
+        expect(";");
+    } else if (consume_token(TK_IF)) {
+        int label_number = label_sequence_number++;
+        node = new_node(ND_IF, NULL, NULL);
+        expect("(");
         node->lhs = expr();
+        expect(")");
+        node->rhs = stmt();
+        node->label_number = label_number;
+        if (consume_token(TK_ELSE)) {
+            Node* else_node = new_node(ND_ELSE, node->rhs, stmt());
+            node->rhs = else_node;
+            else_node->label_number = label_number;
+        }
     } else {
         node = expr();
+        expect(";");
     }
-    expect(";");
     return node;
 }
 

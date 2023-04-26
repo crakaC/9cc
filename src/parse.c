@@ -61,18 +61,33 @@ Node* stmt() {
         node->lhs = expr();
         expect(")");
         node->rhs = stmt();
+    } else if (consume_token(TK_FOR)) {
+        node = new_node(ND_FOR, NULL, NULL);
+        node->label_number = label_sequence_number++;
+        expect("(");
+        if (!consume(";")) {
+            node->initialization = expr();
+            expect(";");
+        }
+        if (!consume(";")) {
+            node->condition = expr();
+            expect(";");
+        }
+        if (!consume(")")) {
+            node->increment = expr();
+            expect(")");
+        }
+        node->block = stmt();
     } else if (consume_token(TK_IF)) {
         int label_number = label_sequence_number++;
         node = new_node(ND_IF, NULL, NULL);
         expect("(");
-        node->lhs = expr();
+        node->condition = expr();
         expect(")");
-        node->rhs = stmt();
+        node->lhs = stmt();
         node->label_number = label_number;
         if (consume_token(TK_ELSE)) {
-            Node* else_node = new_node(ND_ELSE, node->rhs, stmt());
-            node->rhs = else_node;
-            else_node->label_number = label_number;
+            node->rhs = stmt();
         }
     } else {
         node = expr();

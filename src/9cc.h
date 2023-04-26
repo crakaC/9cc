@@ -63,20 +63,24 @@ typedef enum {
     ND_NUM,     // 整数
     ND_RETURN,  // return
     ND_IF,      // if
-    ND_ELSE,    // else
     ND_FOR,     // for
     ND_WHILE,   // while
 } NodeKind;
 
 typedef struct Node Node;
-
 struct Node {
     NodeKind kind;
     Node* lhs; // 左辺
     Node* rhs; // 右辺
     int val;   // kindがND_NUMのときに使う
     int offset;// kindがND_LVARのとき、RBPからのoffsetをローカル変数のアドレスとして使う
-    int label_number; // if文で使用するラベル番号
+    int label_number; // if文などで使用するラベル番号
+
+    // for文で使うやつ
+    Node* initialization;
+    Node* condition;
+    Node* increment;
+    Node* block;
 };
 
 typedef struct LVar LVar;

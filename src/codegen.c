@@ -36,22 +36,23 @@ void gen(Node* node) {
         printf("  ret\n");
         return;
     case ND_IF:
-        gen(node->lhs);
+        printf("### BEGIN IF %d\n", node->label_number);
+        gen(node->condition);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        if (node->rhs->kind != ND_ELSE) {
-            printf("  je .Lend%d\n", node->label_number);
-            gen(node->rhs);
-            printf(".Lend%d:\n", node->label_number);
+        if (node->rhs == NULL) {
+            printf("  je .Lendif%d\n", node->label_number);
+            gen(node->lhs);
+            printf(".Lendif%d:\n", node->label_number);
         } else {
-            node = node->rhs;
             printf("  je .Lelse%d\n", node->label_number);
             gen(node->lhs);
-            printf("  jmp .Lend%d\n", node->label_number);
+            printf("  jmp .Lendif%d\n", node->label_number);
             printf(".Lelse%d:\n", node->label_number);
             gen(node->rhs);
-            printf(".Lend%d:\n", node->label_number);
+            printf(".Lendif%d:\n", node->label_number);
         }
+        printf("### END IF %d\n", node->label_number);
         return;
     case ND_WHILE:
         printf(".Lbegin%d:\n", node->label_number);
@@ -62,6 +63,28 @@ void gen(Node* node) {
         gen(node->rhs);
         printf("  jmp .Lbegin%d\n", node->label_number);
         printf(".Lend%d:\n", node->label_number);
+        return;
+    case ND_FOR:
+        printf("### BEGIN FOR %d\n", node->label_number);
+        if (node->initialization) {
+            gen(node->initialization);
+        }
+        printf(".Lbegin%d:\n", node->label_number);
+        if (node->condition) {
+            gen(node->condition);
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            printf("  je .Lend%d\n", node->label_number);
+        }
+        printf("##### FOR BLOCK ###\n");
+        gen(node->block);
+        printf("##### END FOR BLOCK ###\n");
+        if (node->increment) {
+            gen(node->increment);
+        }
+        printf("  jmp .Lbegin%d\n", node->label_number);
+        printf(".Lend%d:\n", node->label_number);
+        printf("### END FOR %d\n", node->label_number);
         return;
     }
 

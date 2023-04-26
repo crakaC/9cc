@@ -95,7 +95,7 @@ void dump() {
     for (Token* t = token; t; t = t->next) {
         char* s = calloc(t->len, sizeof(char));
         strncpy(s, t->str, t->len);
-        fprintf(stderr, "std: %s, len: %d, kild: %d\n", s, t->len, t->kind);
+        fprintf(stderr, "str: %s, len: %d, kind: %d\n", s, t->len, t->kind);
     }
 }
 

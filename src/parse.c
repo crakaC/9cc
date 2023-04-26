@@ -14,7 +14,7 @@ Node* mul();
 Node* unary();
 Node* primary();
 
-// if文用ラベル通し番号
+// 制御構文で使用するラベル通し番号
 int label_sequence_number = 0;
 
 Node* new_node(NodeKind kind, Node* lhs, Node* rhs) {
@@ -54,6 +54,13 @@ Node* stmt() {
     if (consume_token(TK_RETURN)) {
         node = new_node(ND_RETURN, expr(), NULL);
         expect(";");
+    } else if (consume_token(TK_WHILE)) {
+        node = new_node(ND_WHILE, NULL, NULL);
+        node->label_number = label_sequence_number++;
+        expect("(");
+        node->lhs = expr();
+        expect(")");
+        node->rhs = stmt();
     } else if (consume_token(TK_IF)) {
         int label_number = label_sequence_number++;
         node = new_node(ND_IF, NULL, NULL);

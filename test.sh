@@ -15,6 +15,8 @@ assert(){
         exit 1
     fi
 }
+assert 10 'a = 0; while(a < 10) a = a + 1; return a;'
+
 assert 0 'if (1) if (1) a = 0; else a = 1; else a = 2; return a;'
 assert 1 'if (1) if (0) a = 0; else a = 1; else a = 2; return a;'
 assert 2 'if (0) if (1) a = 0; else a = 1; else a = 2; return a;'

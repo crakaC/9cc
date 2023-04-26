@@ -135,6 +135,16 @@ void tokenize(char* p) {
             p += 4;
             continue;
         }
+        if (can_tokenize(p, "for")) {
+            cur = new_token(TK_FOR, cur, p, 3);
+            p += 3;
+            continue;
+        }
+        if (can_tokenize(p, "while")) {
+            cur = new_token(TK_WHILE, cur, p, 5);
+            p += 5;
+            continue;
+        }
         if (
             starts_with(p, "==") ||
             starts_with(p, "!=") ||

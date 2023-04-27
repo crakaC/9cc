@@ -100,10 +100,8 @@ void gen(Node* node) {
         emit_noindent(".Lend_for%d:", node->label_number);
         return;
     case ND_BLOCK:
-        while (node->block) {
-            gen(node->block);
-            emit("pop rax");
-            node = node->block;
+        for (int i = 0; i < node->block->size; i++) {
+            gen(node->block->data[i]);
         }
         return;
     }

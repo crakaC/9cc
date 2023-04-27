@@ -5,6 +5,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct Vec {
+    void** data;
+    int size;
+    int capacity;
+} Vec;
+
+Vec* new_vec(void);
+void vec_push(Vec* v, void* element);
+
 //
 // tokenize.c
 //
@@ -88,15 +97,7 @@ struct Node {
     Node* increment;
     Node* body;
 
-    /*
-        {
-            stmt1;
-            stmt2;
-            ...
-        }
-        => node->block(stmt1)->block(stmt2)->...
-    */
-    Node* block;
+    Vec* block;
 };
 
 typedef struct LVar LVar;

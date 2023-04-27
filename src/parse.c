@@ -59,10 +59,9 @@ Node* stmt() {
     Node* node;
     if (consume("{")) {
         node = new_node_simple(ND_BLOCK);
-        Node* n = node;
+        node->block = new_vec();
         while (!consume("}")) {
-            n->block = stmt();
-            n = n->block;
+            vec_push(node->block, stmt());
         }
     } else if (consume_token(TK_RETURN)) {
         node = new_node(ND_RETURN, expr(), NULL);

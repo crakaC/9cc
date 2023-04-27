@@ -3,7 +3,7 @@
 void emit(char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    printf("\t");
+    printf("  ");
     vprintf(fmt, ap);
     printf("\n");
 }
@@ -11,7 +11,6 @@ void emit(char* fmt, ...) {
 void emit_noindent(char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    printf("\t");
     vprintf(fmt, ap);
     printf("\n");
 }
@@ -52,23 +51,22 @@ void gen(Node* node) {
         emit("ret");
         return;
     case ND_IF:
-        emit_noindent("### BEGIN IF %d\n", node->label_number);
+        emit_noindent("### BEGIN IF(%d)", node->label_number);
         gen(node->condition);
         emit("pop rax");
         emit("cmp rax, 0");
         if (node->rhs == NULL) {
             emit("je .Lendif%d", node->label_number);
             gen(node->lhs);
-            emit_noindent(".Lendif%d:\n", node->label_number);
+            emit_noindent(".Lendif%d:", node->label_number);
         } else {
             emit("je .Lelse%d", node->label_number);
             gen(node->lhs);
-            emit("jmp .Lendif%d", node->label_number);
-            emit_noindent(".Lelse%d:\n", node->label_number);
+            emit("jmp .Lend_if%d", node->label_number);
+            emit_noindent(".Lelse%d:", node->label_number);
             gen(node->rhs);
-            emit_noindent(".Lendif%d:\n", node->label_number);
+            emit_noindent(".Lend_if%d:", node->label_number);
         }
-        emit_noindent("### END IF %d\n", node->label_number);
         return;
     case ND_WHILE:
         emit_noindent(".Lbegin%d:\n", node->label_number);
@@ -78,29 +76,28 @@ void gen(Node* node) {
         emit("je .Lend%d", node->label_number);
         gen(node->rhs);
         emit("jmp .Lbegin%d", node->label_number);
-        emit_noindent(".Lend%d:\n", node->label_number);
+        emit_noindent(".Lend%d:", node->label_number);
         return;
     case ND_FOR:
-        emit_noindent("### BEGIN FOR(%d)\n", node->label_number);
+        emit_noindent("### BEGIN FOR(%d)", node->label_number);
         if (node->initialization) {
             gen(node->initialization);
         }
-        emit_noindent(".Lbegin%d:\n", node->label_number);
+        emit_noindent(".Lbegin_for%d:", node->label_number);
         if (node->condition) {
             gen(node->condition);
             emit("pop rax");
             emit("cmp rax, 0");
-            emit("je .Lend%d", node->label_number);
+            emit("je .Lend_for%d", node->label_number);
         }
-        emit_noindent("### FOR BLOCK(%d) ###\n", node->label_number);
+        emit_noindent("### BEGIN FOR BLOCK(%d) ###", node->label_number);
         gen(node->block);
-        emit_noindent("### END FOR BLOCK(%d) ###\n", node->label_number);
+        emit_noindent("### END FOR BLOCK(%d) ###", node->label_number);
         if (node->increment) {
             gen(node->increment);
         }
-        emit("jmp .Lbegin%d", node->label_number);
-        emit_noindent(".Lend%d:\n", node->label_number);
-        emit_noindent("### END FOR(%d)\n", node->label_number);
+        emit("jmp .Lbegin_for%d", node->label_number);
+        emit_noindent(".Lend_for%d:", node->label_number);
         return;
     case ND_BLOCK:
         while (node->block) {

@@ -1,90 +1,106 @@
 #include "9cc.h"
 
+void emit(char* fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    printf("\t");
+    vprintf(fmt, ap);
+    printf("\n");
+}
+
+void emit_noindent(char* fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    printf("\t");
+    vprintf(fmt, ap);
+    printf("\n");
+}
+
 void gen_lval(Node* node) {
     if (node->kind != ND_LVAR) {
         error("");
     }
-    printf("  mov rax, rbp\n");
-    printf("  sub rax, %d\n", node->offset);
-    printf("  push rax\n");
+    emit("mov rax, rbp");
+    emit("sub rax, %d", node->offset);
+    emit("push rax");
 }
 
 void gen(Node* node) {
     switch (node->kind) {
     case ND_NUM:
-        printf("  push %d\n", node->val);
+        emit("push %d", node->val);
         return;
     case ND_LVAR:
         gen_lval(node);
-        printf("  pop rax\n");
-        printf("  mov rax, [rax]\n");
-        printf("  push rax\n");
+        emit("pop rax");
+        emit("mov rax, [rax]");
+        emit("push rax");
         return;
     case ND_ASSIGN:
         gen_lval(node->lhs);
         gen(node->rhs);
-        printf("  pop rdi\n");
-        printf("  pop rax\n");
-        printf("  mov [rax], rdi\n");
-        printf("  push rdi\n");
+        emit("pop rdi");
+        emit("pop rax");
+        emit("mov [rax], rdi");
+        emit("push rdi");
         return;
     case ND_RETURN:
         gen(node->lhs);
-        printf("  pop rax\n");
-        printf("  mov rsp, rbp\n");
-        printf("  pop rbp\n");
-        printf("  ret\n");
+        emit("pop rax");
+        emit("mov rsp, rbp");
+        emit("pop rbp");
+        emit("ret");
         return;
     case ND_IF:
-        printf("### BEGIN IF %d\n", node->label_number);
+        emit_noindent("### BEGIN IF %d\n", node->label_number);
         gen(node->condition);
-        printf("  pop rax\n");
-        printf("  cmp rax, 0\n");
+        emit("pop rax");
+        emit("cmp rax, 0");
         if (node->rhs == NULL) {
-            printf("  je .Lendif%d\n", node->label_number);
+            emit("je .Lendif%d", node->label_number);
             gen(node->lhs);
-            printf(".Lendif%d:\n", node->label_number);
+            emit_noindent(".Lendif%d:\n", node->label_number);
         } else {
-            printf("  je .Lelse%d\n", node->label_number);
+            emit("je .Lelse%d", node->label_number);
             gen(node->lhs);
-            printf("  jmp .Lendif%d\n", node->label_number);
-            printf(".Lelse%d:\n", node->label_number);
+            emit("jmp .Lendif%d", node->label_number);
+            emit_noindent(".Lelse%d:\n", node->label_number);
             gen(node->rhs);
-            printf(".Lendif%d:\n", node->label_number);
+            emit_noindent(".Lendif%d:\n", node->label_number);
         }
-        printf("### END IF %d\n", node->label_number);
+        emit_noindent("### END IF %d\n", node->label_number);
         return;
     case ND_WHILE:
-        printf(".Lbegin%d:\n", node->label_number);
+        emit_noindent(".Lbegin%d:\n", node->label_number);
         gen(node->lhs);
-        printf("  pop rax\n");
-        printf("  cmp rax, 0\n");
-        printf("  je .Lend%d\n", node->label_number);
+        emit("pop rax");
+        emit("cmp rax, 0");
+        emit("je .Lend%d", node->label_number);
         gen(node->rhs);
-        printf("  jmp .Lbegin%d\n", node->label_number);
-        printf(".Lend%d:\n", node->label_number);
+        emit("jmp .Lbegin%d", node->label_number);
+        emit_noindent(".Lend%d:\n", node->label_number);
         return;
     case ND_FOR:
-        printf("### BEGIN FOR(%d)\n", node->label_number);
+        emit_noindent("### BEGIN FOR(%d)\n", node->label_number);
         if (node->initialization) {
             gen(node->initialization);
         }
-        printf(".Lbegin%d:\n", node->label_number);
+        emit_noindent(".Lbegin%d:\n", node->label_number);
         if (node->condition) {
             gen(node->condition);
-            printf("  pop rax\n");
-            printf("  cmp rax, 0\n");
-            printf("  je .Lend%d\n", node->label_number);
+            emit("pop rax");
+            emit("cmp rax, 0");
+            emit("je .Lend%d", node->label_number);
         }
-        printf("### FOR BLOCK(%d) ###\n", node->label_number);
+        emit_noindent("### FOR BLOCK(%d) ###\n", node->label_number);
         gen(node->block);
-        printf("### END FOR BLOCK(%d) ###\n", node->label_number);
+        emit_noindent("### END FOR BLOCK(%d) ###\n", node->label_number);
         if (node->increment) {
             gen(node->increment);
         }
-        printf("  jmp .Lbegin%d\n", node->label_number);
-        printf(".Lend%d:\n", node->label_number);
-        printf("### END FOR(%d)\n", node->label_number);
+        emit("jmp .Lbegin%d", node->label_number);
+        emit_noindent(".Lend%d:\n", node->label_number);
+        emit_noindent("### END FOR(%d)\n", node->label_number);
         return;
     case ND_BLOCK:
         while (node->block) {
@@ -97,44 +113,44 @@ void gen(Node* node) {
     gen(node->lhs);
     gen(node->rhs);
 
-    printf("  pop rdi\n");
-    printf("  pop rax\n");
+    emit("pop rdi");
+    emit("pop rax");
 
     switch (node->kind) {
     case ND_EQ:  // ==
-        printf("  cmp rax, rdi\n");
-        printf("  sete al\n");
-        printf("  movzb rax, al\n");
+        emit("cmp rax, rdi");
+        emit("sete al");
+        emit("movzb rax, al");
         break;
     case ND_NE:  // !=
-        printf("  cmp rax, rdi\n");
-        printf("  setne al\n");
-        printf("  movzb rax, al\n");
+        emit("cmp rax, rdi");
+        emit("setne al");
+        emit("movzb rax, al");
         break;
     case ND_LT:  // >
-        printf("  cmp rax, rdi\n");
-        printf("  setl al\n");
-        printf("  movzb rax, al\n");
+        emit("cmp rax, rdi");
+        emit("setl al");
+        emit("movzb rax, al");
         break;
     case ND_LE:  // >=
-        printf("  cmp rax, rdi\n");
-        printf("  setle al\n");
-        printf("  movzb rax, al\n");
+        emit("cmp rax, rdi");
+        emit("setle al");
+        emit("movzb rax, al");
         break;
     case ND_ADD:
-        printf("  add rax, rdi\n");
+        emit("add rax, rdi");
         break;
     case ND_SUB:
-        printf("  sub rax, rdi\n");
+        emit("sub rax, rdi");
         break;
     case ND_MUL:
-        printf("  imul rax, rdi\n");
+        emit("imul rax, rdi");
         break;
     case ND_DIV:
-        printf("  cqo\n");
-        printf("  idiv rdi\n");
+        emit("cqo");
+        emit("idiv rdi");
         break;
     }
 
-    printf("  push rax\n");
+    emit("push rax");
 }

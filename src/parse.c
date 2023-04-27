@@ -17,6 +17,12 @@ Node* primary();
 // 制御構文で使用するラベル通し番号
 int label_sequence_number = 0;
 
+Node* new_node_simple(NodeKind kind) {
+    Node* node = calloc(1, sizeof(Node));
+    node->kind = kind;
+    return node;
+}
+
 Node* new_node(NodeKind kind, Node* lhs, Node* rhs) {
     Node* node = calloc(1, sizeof(Node));
     node->kind = kind;
@@ -51,18 +57,25 @@ void program() {
 
 Node* stmt() {
     Node* node;
-    if (consume_token(TK_RETURN)) {
+    if (consume("{")) {
+        node = new_node_simple(ND_BLOCK);
+        Node* n = node;
+        while (!consume("}")) {
+            n->block = stmt();
+            n = n->block;
+        }
+    } else if (consume_token(TK_RETURN)) {
         node = new_node(ND_RETURN, expr(), NULL);
         expect(";");
     } else if (consume_token(TK_WHILE)) {
-        node = new_node(ND_WHILE, NULL, NULL);
+        node = new_node_simple(ND_WHILE);
         node->label_number = label_sequence_number++;
         expect("(");
         node->lhs = expr();
         expect(")");
         node->rhs = stmt();
     } else if (consume_token(TK_FOR)) {
-        node = new_node(ND_FOR, NULL, NULL);
+        node = new_node_simple(ND_FOR);
         node->label_number = label_sequence_number++;
         expect("(");
         if (!consume(";")) {
@@ -80,7 +93,7 @@ Node* stmt() {
         node->block = stmt();
     } else if (consume_token(TK_IF)) {
         int label_number = label_sequence_number++;
-        node = new_node(ND_IF, NULL, NULL);
+        node = new_node_simple(ND_IF);
         expect("(");
         node->condition = expr();
         expect(")");

@@ -65,6 +65,7 @@ typedef enum {
     ND_IF,      // if
     ND_FOR,     // for
     ND_WHILE,   // while
+    ND_BLOCK,   // {}ブロック
 } NodeKind;
 
 typedef struct Node Node;

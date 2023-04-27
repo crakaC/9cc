@@ -102,6 +102,7 @@ void gen(Node* node) {
     case ND_BLOCK:
         while (node->block) {
             gen(node->block);
+            emit("pop rax");
             node = node->block;
         }
         return;

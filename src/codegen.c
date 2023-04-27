@@ -65,7 +65,7 @@ void gen(Node* node) {
         printf(".Lend%d:\n", node->label_number);
         return;
     case ND_FOR:
-        printf("### BEGIN FOR %d\n", node->label_number);
+        printf("### BEGIN FOR(%d)\n", node->label_number);
         if (node->initialization) {
             gen(node->initialization);
         }
@@ -76,15 +76,15 @@ void gen(Node* node) {
             printf("  cmp rax, 0\n");
             printf("  je .Lend%d\n", node->label_number);
         }
-        printf("##### FOR BLOCK ###\n");
+        printf("### FOR BLOCK(%d) ###\n", node->label_number);
         gen(node->block);
-        printf("##### END FOR BLOCK ###\n");
+        printf("### END FOR BLOCK(%d) ###\n", node->label_number);
         if (node->increment) {
             gen(node->increment);
         }
         printf("  jmp .Lbegin%d\n", node->label_number);
         printf(".Lend%d:\n", node->label_number);
-        printf("### END FOR %d\n", node->label_number);
+        printf("### END FOR(%d)\n", node->label_number);
         return;
     case ND_BLOCK:
         while (node->block) {

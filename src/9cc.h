@@ -75,6 +75,7 @@ typedef enum {
     ND_FOR,     // for
     ND_WHILE,   // while
     ND_BLOCK,   // {}ブロック
+    ND_CALL,    // 関数呼び出し
 } NodeKind;
 
 typedef struct Node Node;
@@ -85,6 +86,8 @@ struct Node {
     int val;   // kindがND_NUMのときに使う
     int offset;// kindがND_LVARのとき、RBPからのoffsetをローカル変数のアドレスとして使う
     int label_number; // if文などで使用するラベル番号
+
+    char* name;
 
     // if ("condition") "then" else "els"
     Node* condition;

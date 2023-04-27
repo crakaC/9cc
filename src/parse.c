@@ -197,6 +197,19 @@ Node* primary() {
     }
 
     Token* tok = consume_ident();
+
+    // identに()が続いているなら関数呼び出し
+    if (consume("(")) {
+        while (!consume(")")) {
+            // 引数
+            error("not implemented");
+        }
+        Node* node = new_node_simple(ND_CALL);
+        node->name = calloc(tok->len, sizeof(char));
+        strncpy(node->name, tok->str, tok->len);
+        return node;
+    }
+
     if (tok) {
         Node* node = calloc(1, sizeof(Node));
         node->kind = ND_LVAR;

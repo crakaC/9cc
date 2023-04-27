@@ -28,6 +28,10 @@ test:
 	$(docker-run) make
 	$(docker-run) ./test.sh
 
+.PHONY: test-call
+test-call:
+	$(docker-run) ./test_call.sh
+
 .PHONY: docker-build
 docker-build:
 	docker build --platform linux/x86_64 -t compilerbook .
@@ -38,4 +42,4 @@ docker:
 
 .PHONY: clean
 clean:
-	@rm -rf 9cc tmp* $(OBJDIR)
+	@rm -rf 9cc tmp* *.o $(OBJDIR)

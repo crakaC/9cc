@@ -15,6 +15,16 @@ void emit_noindent(char* fmt, ...) {
     printf("\n");
 }
 
+void align_rsp() {
+    emit_noindent("### align rsp");
+    emit("mov rax, rsp");
+    emit("mov rdi, 16");
+    emit("cqo");
+    emit("idiv rdi");
+    emit("mov rax, rdi");
+    emit("sub rsp, rax");
+}
+
 void gen_lval(Node* node) {
     if (node->kind != ND_LVAR) {
         error("");
@@ -103,6 +113,12 @@ void gen(Node* node) {
         for (int i = 0; i < node->block->size; i++) {
             gen(node->block->data[i]);
         }
+        return;
+    case ND_CALL:
+        align_rsp();
+        emit("mov rdi, 1");
+        emit("mov rsi, 2");
+        emit("call %s", node->name);
         return;
     }
 

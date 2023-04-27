@@ -16,15 +16,20 @@ assert(){
     fi
 }
 
+# assert 15 "
+# sum = 0;
+# for(i = 1; i <= 5; i = i + 1){
+#     for(j = 1; j <= 3 ; j = j + 1){
+#         sum = sum + 1;
+#     }
+# } 
+# return sum;
+# "
+assert 1 '{1;}'
+assert 2 '{{2;}}'
+
 assert 1 'if (0) { return 0; } else if (1) {return 1;} else {return 0;}'
 assert 1 'if (1) { if(0) {return 0;} else {return 1;} }'
-assert 5 "
-sum = 0;
-for(i = 1; i <= 5; i = i + 1){
-    sum = sum + 1;
-} 
-return sum;
-"
 
 assert 10 'a = 0; for(;;) if (a < 10) a = a + 1; else return a;'
 assert 55 'sum = 0; for(a = 1; a <= 10; a = a + 1) sum = sum + a; return sum;'

@@ -55,33 +55,33 @@ void gen(Node* node) {
         gen(node->condition);
         emit("pop rax");
         emit("cmp rax, 0");
-        if (node->rhs == NULL) {
+        if (node->els == NULL) {
             emit("je .Lendif%d", node->label_number);
-            gen(node->lhs);
+            gen(node->then);
             emit_noindent(".Lendif%d:", node->label_number);
         } else {
             emit("je .Lelse%d", node->label_number);
-            gen(node->lhs);
+            gen(node->then);
             emit("jmp .Lend_if%d", node->label_number);
             emit_noindent(".Lelse%d:", node->label_number);
-            gen(node->rhs);
+            gen(node->els);
             emit_noindent(".Lend_if%d:", node->label_number);
         }
         return;
     case ND_WHILE:
         emit_noindent(".Lbegin%d:\n", node->label_number);
-        gen(node->lhs);
+        gen(node->condition);
         emit("pop rax");
         emit("cmp rax, 0");
         emit("je .Lend%d", node->label_number);
-        gen(node->rhs);
+        gen(node->body);
         emit("jmp .Lbegin%d", node->label_number);
         emit_noindent(".Lend%d:", node->label_number);
         return;
     case ND_FOR:
         emit_noindent("### BEGIN FOR(%d)", node->label_number);
-        if (node->initialization) {
-            gen(node->initialization);
+        if (node->init) {
+            gen(node->init);
         }
         emit_noindent(".Lbegin_for%d:", node->label_number);
         if (node->condition) {
@@ -91,7 +91,7 @@ void gen(Node* node) {
             emit("je .Lend_for%d", node->label_number);
         }
         emit_noindent("### BEGIN FOR BLOCK(%d) ###", node->label_number);
-        gen(node->block);
+        gen(node->body);
         emit_noindent("### END FOR BLOCK(%d) ###", node->label_number);
         if (node->increment) {
             gen(node->increment);

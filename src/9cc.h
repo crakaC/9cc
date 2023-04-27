@@ -77,10 +77,25 @@ struct Node {
     int offset;// kindがND_LVARのとき、RBPからのoffsetをローカル変数のアドレスとして使う
     int label_number; // if文などで使用するラベル番号
 
-    // for文で使うやつ
-    Node* initialization;
+    // if ("condition") "then" else "els"
     Node* condition;
+    Node* then;
+    Node* els;
+
+    // for("init"; "condition"; "increment") "body"
+    // while("condition") "body"
+    Node* init;
     Node* increment;
+    Node* body;
+
+    /*
+        {
+            stmt1;
+            stmt2;
+            ...
+        }
+        => node->block(stmt1)->block(stmt2)->...
+    */
     Node* block;
 };
 

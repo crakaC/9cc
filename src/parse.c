@@ -71,15 +71,15 @@ Node* stmt() {
         node = new_node_simple(ND_WHILE);
         node->label_number = label_sequence_number++;
         expect("(");
-        node->lhs = expr();
+        node->condition = expr();
         expect(")");
-        node->rhs = stmt();
+        node->body = stmt();
     } else if (consume_token(TK_FOR)) {
         node = new_node_simple(ND_FOR);
         node->label_number = label_sequence_number++;
         expect("(");
         if (!consume(";")) {
-            node->initialization = expr();
+            node->init = expr();
             expect(";");
         }
         if (!consume(";")) {
@@ -90,17 +90,17 @@ Node* stmt() {
             node->increment = expr();
             expect(")");
         }
-        node->block = stmt();
+        node->body = stmt();
     } else if (consume_token(TK_IF)) {
         int label_number = label_sequence_number++;
         node = new_node_simple(ND_IF);
         expect("(");
         node->condition = expr();
         expect(")");
-        node->lhs = stmt();
+        node->then = stmt();
         node->label_number = label_number;
         if (consume_token(TK_ELSE)) {
-            node->rhs = stmt();
+            node->els = stmt();
         }
     } else {
         node = expr();

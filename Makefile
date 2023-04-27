@@ -18,6 +18,8 @@ $(OBJDIR):
 $(OBJDIR)%.o: $(SRCDIR)%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+$(OBJS): $(SRCDIR)/9cc.h
+
 9cc: $(OBJDIR) $(OBJS)
 	$(CC) -o 9cc $(OBJS) $(LDFLAGS)
 

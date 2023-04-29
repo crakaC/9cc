@@ -15,16 +15,6 @@ void emit_noindent(char* fmt, ...) {
     printf("\n");
 }
 
-void align_rsp() {
-    emit_noindent("### align rsp");
-    emit("mov rax, rsp");
-    emit("mov rdi, 16");
-    emit("cqo");
-    emit("idiv rdi");
-    emit("mov rax, rdi");
-    emit("sub rsp, rax");
-}
-
 void gen_lval(Node* node) {
     if (node->kind != ND_LVAR) {
         error("");
@@ -115,10 +105,16 @@ void gen(Node* node) {
         }
         return;
     case ND_CALL:
-        align_rsp();
+        // 引数をレジスタに格納（仮）
         emit("mov rdi, 1");
         emit("mov rsi, 2");
+        emit("mov rdx, 4");
+
+        // TODO x86-64ではcall前にスタックポインタを16ビット境界に合わせておかないといけないが
+        // とりあえず動くので動作しなくなったらやる。
         emit("call %s", node->name);
+        // 関数の返り値をスタックに詰める
+        emit("push rax");
         return;
     }
 

@@ -5,7 +5,7 @@ assert(){
 
     ./9cc "$input" > tmp.s
     cc -c -o tmp.o tmp.s
-    cc -o tmp tmp.o foo.o
+    cc -g -o tmp tmp.o foo.o
     ./tmp
     actual="$?"
 
@@ -21,5 +21,5 @@ make
 CFLAGS="-std=c11 -static"
 cc $CFLAGS -c -o foo.o test/foo.c
 
-assert 0 'foo();'
-assert 0 '1; foo();'
+assert 7 'foo();'
+assert 14 'foo() + foo();'

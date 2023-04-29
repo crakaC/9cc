@@ -16,6 +16,10 @@ assert(){
     fi
 }
 
+assert 1 "65535 % 65536; 1 % 2;"
+assert 3 "8 % 5;"
+assert 2 "13 * 2 % 4;"
+
 assert 20 "
 sum = 0;
 for(i = 1; i <= 2; i = i + 1){

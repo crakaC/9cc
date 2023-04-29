@@ -158,6 +158,11 @@ void gen(Node* node) {
         emit("cqo");
         emit("idiv rdi");
         break;
+    case ND_MOD:
+        emit("cqo");
+        emit("idiv rdi");
+        emit("mov rax, rdx");
+        break;
     }
 
     emit("push rax");

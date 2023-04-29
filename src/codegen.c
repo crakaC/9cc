@@ -1,5 +1,7 @@
 #include "9cc.h"
 
+static char* arg_regs[] = { "rdi", "rsi", "rdx", "rcx", "r8", "r9" };
+
 void emit(char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
@@ -105,10 +107,14 @@ void gen(Node* node) {
         }
         return;
     case ND_CALL:
-        // 引数をレジスタに格納（仮）
-        emit("mov rdi, 1");
-        emit("mov rsi, 2");
-        emit("mov rdx, 4");
+        // 引数を評価
+        for (int i = 0; i < node->args->size; i++) {
+            gen(node->args->data[i]);
+        }
+
+        for (int i = node->args->size - 1; i >= 0; i--) {
+            emit("pop %s", arg_regs[i]);
+        }
 
         // TODO x86-64ではcall前にスタックポインタを16ビット境界に合わせておかないといけないが
         // とりあえず動くので動作しなくなったらやる。

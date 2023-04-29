@@ -4,20 +4,21 @@ Node* code[100];
 // ローカル変数
 LVar* locals;
 
-Node* stmt();
-Node* expr();
-Node* assign();
-Node* equality();
-Node* relational();
-Node* add();
-Node* mul();
-Node* unary();
-Node* primary();
+Node* toplevel(); // トップレベル定義
+Node* stmt(); // 行。;で区切られているやつ
+Node* expr(); // 最終的に値を吐き出すやつ。
+Node* assign(); // x = yの形になってるやつ？
+Node* equality(); // ==, !=
+Node* relational(); // 比較
+Node* add(); // 加減算
+Node* mul(); // 乗除
+Node* unary(); // 単項演算子
+Node* primary(); // より優先するやつ。()の中。
 
 // 制御構文で使用するラベル通し番号
 int label_sequence_number = 0;
 
-Node* new_node_simple(NodeKind kind) {
+Node* new_node_kind(NodeKind kind) {
     Node* node = calloc(1, sizeof(Node));
     node->kind = kind;
     return node;
@@ -55,10 +56,26 @@ void program() {
     code[i] = NULL;
 }
 
+Node* toplevel() {
+    Node* node;
+
+    // TODO: グローバル変数
+
+    // 関数定義
+    // if (consume_ident()) {
+    //     node = new_node_kind(ND_FUNC);
+    // } else {
+    //     node = stmt();
+    // }
+
+    node = stmt();
+    return node;
+}
+
 Node* stmt() {
     Node* node;
     if (consume("{")) {
-        node = new_node_simple(ND_BLOCK);
+        node = new_node_kind(ND_BLOCK);
         node->block = new_vec();
         while (!consume("}")) {
             vec_push(node->block, stmt());
@@ -67,14 +84,14 @@ Node* stmt() {
         node = new_node(ND_RETURN, expr(), NULL);
         expect(";");
     } else if (consume_token(TK_WHILE)) {
-        node = new_node_simple(ND_WHILE);
+        node = new_node_kind(ND_WHILE);
         node->label_number = label_sequence_number++;
         expect("(");
         node->condition = expr();
         expect(")");
         node->body = stmt();
     } else if (consume_token(TK_FOR)) {
-        node = new_node_simple(ND_FOR);
+        node = new_node_kind(ND_FOR);
         node->label_number = label_sequence_number++;
         expect("(");
         if (!consume(";")) {
@@ -92,7 +109,7 @@ Node* stmt() {
         node->body = stmt();
     } else if (consume_token(TK_IF)) {
         int label_number = label_sequence_number++;
-        node = new_node_simple(ND_IF);
+        node = new_node_kind(ND_IF);
         expect("(");
         node->condition = expr();
         expect(")");
@@ -202,13 +219,14 @@ Node* primary() {
 
     // identに()が続いているなら関数呼び出し
     if (consume("(")) {
-        while (!consume(")")) {
-            // 引数
-            error("not implemented");
-        }
-        Node* node = new_node_simple(ND_CALL);
-        node->name = calloc(tok->len, sizeof(char));
+        Node* node = new_node_kind(ND_CALL);
+        node->name = malloc(sizeof(char));
         strncpy(node->name, tok->str, tok->len);
+        node->args = new_vec();
+        while (!consume(")")) {
+            vec_push(node->args, expr());
+            consume(",");
+        }
         return node;
     }
 

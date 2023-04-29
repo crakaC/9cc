@@ -101,6 +101,7 @@ struct Node {
     Node* increment;
     Node* body;
 
+    Vec* args;
     Vec* block;
 };
 

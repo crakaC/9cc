@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := 9cc
 
-CFLAGS = -std=c11 -g -static
+CFLAGS = -std=gnu11 -g -static
 
 SRCDIR = src/
 OBJDIR = obj/

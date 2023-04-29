@@ -5,6 +5,8 @@ Node* code[100];
 LVar* locals;
 
 Node* toplevel(); // トップレベル定義
+Node* func_decl();
+Node* func_call();
 Node* stmt(); // 行。;で区切られているやつ
 Node* expr(); // 最終的に値を吐き出すやつ。
 Node* assign(); // x = yの形になってるやつ？
@@ -51,24 +53,40 @@ LVar* find_lvar(Token* tok) {
 void program() {
     int i = 0;
     while (!at_eof()) {
-        code[i++] = stmt();
+        code[i++] = toplevel();
     }
     code[i] = NULL;
 }
 
 Node* toplevel() {
-    Node* node;
+    return func_decl();
+}
 
-    // TODO: グローバル変数
+Node* func_decl() {
+    Node* node = new_node_kind(ND_FUNC);
+    Token* tok = consume_ident();
+    if (tok == NULL) {
+        error("invalid function declaration\n");
+    }
+    node->name = strndup(tok->str, tok->len);
+    node->args = new_vec();
+    expect("(");
+    while (!consume(")")) {
+        vec_push(node->args, expr());
+        consume(",");
+    }
+    node->body = stmt();
+    return node;
+}
 
-    // 関数定義
-    // if (consume_ident()) {
-    //     node = new_node_kind(ND_FUNC);
-    // } else {
-    //     node = stmt();
-    // }
-
-    node = stmt();
+Node* func_call(Token* tok) {
+    Node* node = new_node_kind(ND_CALL);
+    node->name = strndup(tok->str, tok->len);
+    node->args = new_vec();
+    while (!consume(")")) {
+        vec_push(node->args, expr());
+        consume(",");
+    }
     return node;
 }
 
@@ -219,21 +237,11 @@ Node* primary() {
 
     // identに()が続いているなら関数呼び出し
     if (consume("(")) {
-        Node* node = new_node_kind(ND_CALL);
-        node->name = malloc(sizeof(char));
-        strncpy(node->name, tok->str, tok->len);
-        node->args = new_vec();
-        while (!consume(")")) {
-            vec_push(node->args, expr());
-            consume(",");
-        }
-        return node;
+        return func_call(tok);
     }
 
     if (tok) {
-        Node* node = calloc(1, sizeof(Node));
-        node->kind = ND_LVAR;
-
+        Node* node = new_node_kind(ND_LVAR);
         LVar* lvar = find_lvar(tok);
         if (lvar) {
             node->offset = lvar->offset;

@@ -21,4 +21,4 @@ make
 CFLAGS="-std=c11 -static"
 cc $CFLAGS -c -o foo.o test/foo.c
 
-assert 7 'foo(1, 2, 4);'
+assert 7 'main(){ foo(1, 2, 4); }'

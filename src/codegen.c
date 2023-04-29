@@ -26,6 +26,23 @@ void gen_lval(Node* node) {
     emit("push rax");
 }
 
+void prologue(char* label) {
+    if (strcmp(label, "main") == 0) {
+        emit_noindent("main:");
+    } else {
+        emit_noindent(".%s:", label);
+    }
+    emit("push rbp");
+    emit("mov rbp, rsp");
+}
+
+void epilogue() {
+    emit("pop rax");
+    emit("mov rsp, rbp");
+    emit("pop rbp");
+    emit("ret");
+}
+
 void gen(Node* node) {
     switch (node->kind) {
     case ND_NUM:
@@ -47,10 +64,7 @@ void gen(Node* node) {
         return;
     case ND_RETURN:
         gen(node->lhs);
-        emit("pop rax");
-        emit("mov rsp, rbp");
-        emit("pop rbp");
-        emit("ret");
+        epilogue();
         return;
     case ND_IF:
         emit_noindent("### BEGIN IF(%d)", node->label_number);
@@ -121,6 +135,13 @@ void gen(Node* node) {
         emit("call %s", node->name);
         // 関数の返り値をスタックに詰める
         emit("push rax");
+        return;
+    case ND_FUNC:
+        prologue(node->name);
+        // TODO スタック領域に色々確保したりする
+        emit("sub rsp, 208"); // 仮
+        gen(node->body);
+        epilogue();
         return;
     }
 

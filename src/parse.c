@@ -7,7 +7,7 @@ LVar* locals;
 
 Node* toplevel(); // トップレベル定義
 Node* func_decl();
-Node* func_call();
+Node* func_call(Token* tok);
 Node* stmt(); // 行。;で区切られているやつ
 Node* expr(); // 最終的に値を吐き出すやつ。
 Node* assign(); // x = yの形になってるやつ？

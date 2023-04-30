@@ -142,6 +142,14 @@ void gen(Node* node) {
         gen(node->body);
         epilogue();
         return;
+    case ND_ADDR:
+        gen_lval(node->lhs);
+        return;
+    case ND_DEREF:
+        emit("pop rax");
+        emit("mov rax, [rax]");
+        emit("push rax");
+        return;
     }
 
     gen(node->lhs);

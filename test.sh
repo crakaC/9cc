@@ -16,6 +16,8 @@ assert(){
     fi
 }
 
+assert 3 "x = 3; y = &x; return *y;"
+
 assert 1 "65535 % 65536; 1 % 2;"
 assert 3 "8 % 5;"
 assert 2 "13 * 2 % 4;"

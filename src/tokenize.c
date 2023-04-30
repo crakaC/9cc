@@ -5,8 +5,12 @@ Token* token;
 
 char* user_input;
 
-void error(char* msg) {
-    fprintf(stderr, "error: %s", msg);
+void error(char* fmt, ...) {
+    char buf[1024];
+    va_list ap;
+    va_start(ap, fmt);
+    vsprintf(buf, fmt, ap);
+    fprintf(stderr, "error: %s\n", buf);
     exit(1);
 }
 
@@ -119,6 +123,11 @@ void tokenize(char* p) {
         drop_space(&p);
         if (*p == '\0') {
             break;
+        }
+        if (can_tokenize(p, "int")) {
+            cur = new_token(TK_INT, cur, p, 3);
+            p += 3;
+            continue;
         }
         if (can_tokenize(p, "return")) {
             cur = new_token(TK_RETURN, cur, p, 6);

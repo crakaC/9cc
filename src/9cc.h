@@ -20,15 +20,16 @@ void vec_push(Vec* v, void* element);
 
 // トークンの種類
 typedef enum {
-    TK_RESERVED, // 記号
-    TK_RETURN,   // return
-    TK_IF,       // if
-    TK_ELSE,     // else
-    TK_FOR,      // for
-    TK_WHILE,    // while
-    TK_IDENT,    // 識別子
-    TK_NUM,      // 整数
-    TK_EOF,      // 入力終わり
+    TK_RESERVED,    // 記号
+    TK_INT,         // int
+    TK_RETURN,      // return
+    TK_IF,          // if
+    TK_ELSE,        // else
+    TK_FOR,         // for
+    TK_WHILE,       // while
+    TK_IDENT,       // 識別子
+    TK_NUM,         // 整数
+    TK_EOF,         // 入力終わり
 } TokenKind;
 
 typedef struct Token Token;
@@ -42,7 +43,8 @@ struct Token {
     int len;        // トークンの長さ
 };
 
-void error(char* msg);
+void error(char* fmt, ...);
+void error_at(char* loc, char* fmt, ...);
 bool consume_token(TokenKind kind);
 bool consume(char* op);
 Token* consume_ident();

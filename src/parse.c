@@ -17,6 +17,7 @@ Node* add(); // 加減算
 Node* mul(); // 乗除
 Node* unary(); // 単項演算子
 Node* primary(); // より優先するやつ。()の中。
+Node* new_lvar(Token* tok);
 
 // 制御構文で使用するラベル通し番号
 int label_sequence_number = 0;
@@ -66,6 +67,11 @@ Node* toplevel() {
 
 Node* func_decl() {
     Node* node = new_node_kind(ND_FUNC);
+
+    if (!consume_token(TK_INT)) {
+        error("function declaration must be started with \"int\".");
+    }
+
     Token* tok = consume_ident();
     if (tok == NULL) {
         error("invalid function declaration\n");
@@ -74,7 +80,12 @@ Node* func_decl() {
     node->args = new_vec();
     expect("(");
     while (!consume(")")) {
-        vec_push(node->args, expr());
+        consume_token(TK_INT);
+        Token* t = consume_ident();
+        if (!t) {
+            error("invalid function arguments.\n");
+        }
+        vec_push(node->args, new_lvar(t));
         consume(",");
     }
     node->body = stmt();
@@ -139,6 +150,9 @@ Node* stmt() {
         if (consume_token(TK_ELSE)) {
             node->els = stmt();
         }
+    } else if (consume_token(TK_INT)) {
+        node = new_lvar(consume_ident());
+        expect(";");
     } else {
         node = expr();
         expect(";");
@@ -252,24 +266,34 @@ Node* primary() {
     if (tok) {
         Node* node = new_node_kind(ND_LVAR);
         LVar* lvar = find_lvar(tok, locals);
-        if (lvar) {
-            node->offset = lvar->offset;
-        } else {
-            lvar = calloc(1, sizeof(LVar));
-            lvar->next = locals;
-            lvar->name = tok->str;
-            lvar->len = tok->len;
-            if (locals) {
-                lvar->offset = locals->offset + 8;
-            } else {
-                lvar->offset = 8;
-            }
-            node->offset = lvar->offset;
-            locals = lvar;
+        if (!lvar) {
+            error("lvar %s not found.\n", tok->str);
         }
+        node->name = strndup(lvar->name, lvar->len);
+        node->offset = lvar->offset;
         return node;
     }
 
     // そうでなければ数値のはず
     return new_node_num(expect_number());
+}
+
+Node* new_lvar(Token* tok) {
+    LVar* exists = find_lvar(tok, locals);
+    if (exists) {
+        error_at(tok->str, "%s is already declared", strndup(exists->name, exists->len));
+    }
+    Node* node = new_node_kind(ND_LVAR);
+    LVar* lvar = calloc(1, sizeof(LVar));
+    lvar->next = locals;
+    lvar->name = tok->str;
+    lvar->len = tok->len;
+    if (locals) {
+        lvar->offset = locals->offset + 8;
+    } else {
+        lvar->offset = 8;
+    }
+    node->offset = lvar->offset;
+    locals = lvar;
+    return node;
 }

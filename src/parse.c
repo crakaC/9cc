@@ -2,6 +2,7 @@
 
 Node* code[100];
 // ローカル変数
+LVar* toplevel_locals[100];
 LVar* locals;
 
 Node* toplevel(); // トップレベル定義
@@ -41,8 +42,8 @@ Node* new_node_num(int val) {
     return node;
 }
 
-LVar* find_lvar(Token* tok) {
-    for (LVar* var = locals; var; var = var->next) {
+LVar* find_lvar(Token* tok, LVar* local_vars) {
+    for (LVar* var = local_vars; var; var = var->next) {
         if (var->len == tok->len && !memcmp(tok->str, var->name, var->len)) {
             return var;
         }
@@ -53,6 +54,7 @@ LVar* find_lvar(Token* tok) {
 void program() {
     int i = 0;
     while (!at_eof()) {
+        locals = toplevel_locals[i];
         code[i++] = toplevel();
     }
     code[i] = NULL;
@@ -84,6 +86,7 @@ Node* func_call(Token* tok) {
     node->name = strndup(tok->str, tok->len);
     node->args = new_vec();
     while (!consume(")")) {
+        // TODO 引数の定義は適当に読み飛ばしている状態
         vec_push(node->args, expr());
         consume(",");
     }
@@ -242,7 +245,7 @@ Node* primary() {
 
     if (tok) {
         Node* node = new_node_kind(ND_LVAR);
-        LVar* lvar = find_lvar(tok);
+        LVar* lvar = find_lvar(tok, locals);
         if (lvar) {
             node->offset = lvar->offset;
         } else {

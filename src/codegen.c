@@ -27,11 +27,7 @@ void gen_lval(Node* node) {
 }
 
 void prologue(char* label) {
-    if (strcmp(label, "main") == 0) {
-        emit_noindent("main:");
-    } else {
-        emit_noindent(".%s:", label);
-    }
+    emit_noindent("%s:", label);
     emit("push rbp");
     emit("mov rbp, rsp");
 }
@@ -140,6 +136,9 @@ void gen(Node* node) {
         prologue(node->name);
         // TODO スタック領域に色々確保したりする
         emit("sub rsp, 208"); // 仮
+        for (int i = 0; i < node->args->size; i++) {
+            emit("mov [rbp-%d], %s", (i + 1) * 8, arg_regs[i]);
+        }
         gen(node->body);
         epilogue();
         return;

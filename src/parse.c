@@ -5,30 +5,30 @@ Node* code[100];
 LVar* toplevel_locals[100];
 LVar* locals;
 
-Node* toplevel(); // トップレベル定義
-Node* func_decl();
-Node* func_call(Token* tok);
-Node* stmt(); // 行。;で区切られているやつ
-Node* expr(); // 最終的に値を吐き出すやつ。
-Node* assign(); // x = yの形になってるやつ？
-Node* equality(); // ==, !=
-Node* relational(); // 比較
-Node* add(); // 加減算
-Node* mul(); // 乗除
-Node* unary(); // 単項演算子
-Node* primary(); // より優先するやつ。()の中。
-Node* new_lvar(Token* tok);
+static Node* toplevel(); // トップレベル定義
+static Node* func_decl();
+static Node* func_call(Token* tok);
+static Node* stmt(); // 行。;で区切られているやつ
+static Node* expr(); // 最終的に値を吐き出すやつ。
+static Node* assign(); // x = yの形になってるやつ？
+static Node* equality(); // ==, !=
+static Node* relational(); // 比較
+static Node* add(); // 加減算
+static Node* mul(); // 乗除
+static Node* unary(); // 単項演算子
+static Node* primary(); // より優先するやつ。()の中。
+static Node* new_lvar(Token* tok);
 
 // 制御構文で使用するラベル通し番号
 int label_sequence_number = 0;
 
-Node* new_node_kind(NodeKind kind) {
+static Node* new_node_kind(NodeKind kind) {
     Node* node = calloc(1, sizeof(Node));
     node->kind = kind;
     return node;
 }
 
-Node* new_node(NodeKind kind, Node* lhs, Node* rhs) {
+static Node* new_node(NodeKind kind, Node* lhs, Node* rhs) {
     Node* node = calloc(1, sizeof(Node));
     node->kind = kind;
     node->lhs = lhs;
@@ -36,14 +36,14 @@ Node* new_node(NodeKind kind, Node* lhs, Node* rhs) {
     return node;
 }
 
-Node* new_node_num(int val) {
+static Node* new_node_num(int val) {
     Node* node = calloc(1, sizeof(Node));
     node->kind = ND_NUM;
     node->val = val;
     return node;
 }
 
-LVar* find_lvar(Token* tok, LVar* local_vars) {
+static LVar* find_lvar(Token* tok, LVar* local_vars) {
     for (LVar* var = local_vars; var; var = var->next) {
         if (var->len == tok->len && !memcmp(tok->str, var->name, var->len)) {
             return var;
@@ -61,11 +61,11 @@ void program() {
     code[i] = NULL;
 }
 
-Node* toplevel() {
+static Node* toplevel() {
     return func_decl();
 }
 
-Node* func_decl() {
+static Node* func_decl() {
     Node* node = new_node_kind(ND_FUNC);
 
     if (!consume_token(TK_INT)) {
@@ -92,7 +92,7 @@ Node* func_decl() {
     return node;
 }
 
-Node* func_call(Token* tok) {
+static Node* func_call(Token* tok) {
     Node* node = new_node_kind(ND_CALL);
     node->name = strndup(tok->str, tok->len);
     node->args = new_vec();
@@ -104,7 +104,7 @@ Node* func_call(Token* tok) {
     return node;
 }
 
-Node* stmt() {
+static Node* stmt() {
     Node* node;
     if (consume("{")) {
         node = new_node_kind(ND_BLOCK);
@@ -160,11 +160,11 @@ Node* stmt() {
     return node;
 }
 
-Node* expr() {
+static Node* expr() {
     return assign();
 }
 
-Node* assign() {
+static Node* assign() {
     Node* node = equality();
     if (consume("=")) {
         node = new_node(ND_ASSIGN, node, assign());
@@ -172,7 +172,7 @@ Node* assign() {
     return node;
 }
 
-Node* equality() {
+static Node* equality() {
     Node* node = relational();
     for (;;) {
         if (consume("==")) {
@@ -185,7 +185,7 @@ Node* equality() {
     }
 }
 
-Node* relational() {
+static Node* relational() {
     Node* node = add();
     for (;;) {
         if (consume("<")) {
@@ -202,7 +202,7 @@ Node* relational() {
     }
 }
 
-Node* add() {
+static Node* add() {
     Node* node = mul();
     for (;;) {
         if (consume("+")) {
@@ -215,7 +215,7 @@ Node* add() {
     }
 }
 
-Node* mul() {
+static Node* mul() {
     Node* node = unary();
     for (;;) {
         if (consume("*")) {
@@ -230,7 +230,7 @@ Node* mul() {
     }
 }
 
-Node* unary() {
+static Node* unary() {
     // 単項演算子
     if (consume("+")) {
         return unary();
@@ -248,7 +248,7 @@ Node* unary() {
     return primary();
 }
 
-Node* primary() {
+static Node* primary() {
     // 次のトークンが"("なら、"(" expr ")"のはず
     if (consume("(")) {
         Node* node = expr();
@@ -278,7 +278,7 @@ Node* primary() {
     return new_node_num(expect_number());
 }
 
-Node* new_lvar(Token* tok) {
+static Node* new_lvar(Token* tok) {
     LVar* exists = find_lvar(tok, locals);
     if (exists) {
         error_at(tok->str, "%s is already declared", strndup(exists->name, exists->len));

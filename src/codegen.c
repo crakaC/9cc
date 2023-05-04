@@ -2,7 +2,7 @@
 
 static char* arg_regs[] = { "rdi", "rsi", "rdx", "rcx", "r8", "r9" };
 
-void emit(char* fmt, ...) {
+static void emit(char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     printf("  ");
@@ -10,14 +10,14 @@ void emit(char* fmt, ...) {
     printf("\n");
 }
 
-void emit_noindent(char* fmt, ...) {
+static void emit_noindent(char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     vprintf(fmt, ap);
     printf("\n");
 }
 
-void gen_lval(Node* node) {
+static void gen_lval(Node* node) {
     if (node->kind != ND_LVAR) {
         error("");
     }
@@ -26,13 +26,13 @@ void gen_lval(Node* node) {
     emit("push rax");
 }
 
-void prologue(char* label) {
+static void prologue(char* label) {
     emit_noindent("%s:", label);
     emit("push rbp");
     emit("mov rbp, rsp");
 }
 
-void epilogue() {
+static void epilogue() {
     emit("pop rax");
     emit("mov rsp, rbp");
     emit("pop rbp");

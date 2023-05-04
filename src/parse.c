@@ -2,8 +2,7 @@
 
 Node* code[100];
 // ローカル変数
-LVar* toplevel_locals[100];
-LVar* locals;
+Vec* locals;
 
 static Node* toplevel(); // トップレベル定義
 static Node* func_decl();
@@ -17,7 +16,9 @@ static Node* add(); // 加減算
 static Node* mul(); // 乗除
 static Node* unary(); // 単項演算子
 static Node* primary(); // より優先するやつ。()の中。
-static Node* new_lvar(Token* tok);
+static Node* new_variable(Token* tok, Type* ty);
+static Type* consume_type_decl();
+static Type* consume_ptr_decl(Type* base);
 
 // 制御構文で使用するラベル通し番号
 int label_sequence_number = 0;
@@ -43,8 +44,9 @@ static Node* new_node_num(int val) {
     return node;
 }
 
-static LVar* find_lvar(Token* tok, LVar* local_vars) {
-    for (LVar* var = local_vars; var; var = var->next) {
+static Var* find_lvar(Token* tok, Vec* local_vars) {
+    for (int i = 0; i < local_vars->size; i++) {
+        Var* var = local_vars->data[i];
         if (var->len == tok->len && !memcmp(tok->str, var->name, var->len)) {
             return var;
         }
@@ -52,13 +54,13 @@ static LVar* find_lvar(Token* tok, LVar* local_vars) {
     return NULL;
 }
 
-void program() {
-    int i = 0;
+Vec* program() {
+    Vec* codes = new_vec();
     while (!at_eof()) {
-        locals = toplevel_locals[i];
-        code[i++] = toplevel();
+        locals = new_vec();
+        vec_push(codes, toplevel());
     }
-    code[i] = NULL;
+    return codes;
 }
 
 static Node* toplevel() {
@@ -68,9 +70,12 @@ static Node* toplevel() {
 static Node* func_decl() {
     Node* node = new_node_kind(ND_FUNC);
 
-    if (!consume_token(TK_INT)) {
-        error("function declaration must be started with \"int\".");
+    // 返り値の型
+    Type* type = consume_type_decl();
+    if (!type) {
+        error("function declaration must be declared with return type");
     }
+    node->return_type = type;
 
     Token* tok = consume_ident();
     if (tok == NULL) {
@@ -80,12 +85,17 @@ static Node* func_decl() {
     node->args = new_vec();
     expect("(");
     while (!consume(")")) {
-        consume_token(TK_INT);
+        Type* ty = consume_type_decl();
+        if (!ty) {
+            error("invalid function argument type");
+        } else if (ty->ty == VOID) {
+            error("void cannot be used for function argument type");
+        }
         Token* t = consume_ident();
         if (!t) {
-            error("invalid function arguments.\n");
+            error("invalid function arguments.");
         }
-        vec_push(node->args, new_lvar(t));
+        vec_push(node->args, new_variable(t, ty));
         consume(",");
     }
     node->body = stmt();
@@ -151,7 +161,7 @@ static Node* stmt() {
             node->els = stmt();
         }
     } else if (consume_token(TK_INT)) {
-        node = new_lvar(consume_ident());
+        node = new_variable(consume_ident(), int_type());
         expect(";");
     } else {
         node = expr();
@@ -265,7 +275,7 @@ static Node* primary() {
 
     if (tok) {
         Node* node = new_node_kind(ND_LVAR);
-        LVar* lvar = find_lvar(tok, locals);
+        Var* lvar = find_lvar(tok, locals);
         if (!lvar) {
             error("lvar %s not found.\n", tok->str);
         }
@@ -278,22 +288,47 @@ static Node* primary() {
     return new_node_num(expect_number());
 }
 
-static Node* new_lvar(Token* tok) {
-    LVar* exists = find_lvar(tok, locals);
+static Node* new_variable(Token* tok, Type* ty) {
+    Var* exists = find_lvar(tok, locals);
     if (exists) {
         error_at(tok->str, "%s is already declared", strndup(exists->name, exists->len));
     }
     Node* node = new_node_kind(ND_LVAR);
-    LVar* lvar = calloc(1, sizeof(LVar));
-    lvar->next = locals;
-    lvar->name = tok->str;
-    lvar->len = tok->len;
-    if (locals) {
-        lvar->offset = locals->offset + 8;
+    Var* var = calloc(1, sizeof(Var));
+    var->name = tok->str;
+    var->len = tok->len;
+    var->type = ty;
+    if (locals->size > 0) {
+        Var* last = vec_last(locals);
+        var->offset = last->offset + 8;
     } else {
-        lvar->offset = 8;
+        var->offset = 8;
     }
-    node->offset = lvar->offset;
-    locals = lvar;
+    vec_push(locals, var);
+    node->offset = var->offset;
+    node->type = ty;
     return node;
+}
+
+static Type* consume_type_decl() {
+    Type* type;
+    switch (token->kind) {
+    case TK_INT:
+        type = int_type();
+        break;
+    case TK_VOID:
+        type = void_type();
+        break;
+    default:
+        return NULL;
+    }
+    token = token->next;
+    return consume_ptr_decl(type);
+}
+
+static Type* consume_ptr_decl(Type* base) {
+    while (consume("*")) {
+        base = ptr_to(base);
+    }
+    return base;
 }

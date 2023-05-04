@@ -13,7 +13,7 @@ typedef struct Vec {
 
 Vec* new_vec(void);
 void vec_push(Vec* v, void* element);
-
+void* vec_last(Vec* v);
 //
 // tokenize.c
 //
@@ -21,6 +21,7 @@ void vec_push(Vec* v, void* element);
 // トークンの種類
 typedef enum {
     TK_RESERVED,    // 記号
+    TK_VOID,        // void
     TK_INT,         // int
     TK_RETURN,      // return
     TK_IF,          // if
@@ -54,6 +55,30 @@ bool at_eof();
 void tokenize(char* p);
 
 extern char* user_input;
+
+//
+// type.c
+//
+
+typedef enum {
+    VOID,
+    INT,
+    PTR
+} TypeKind;
+
+typedef struct Type Type;
+struct Type {
+    TypeKind ty;
+    Type* ptr_to;
+
+    int size;
+    int align;
+};
+
+Type* ptr_to(Type* base);
+Type* int_type();
+Type* void_type();
+bool same_type(Type* x, Type* y);
 
 // 
 // parse.c
@@ -94,6 +119,7 @@ struct Node {
     int label_number; // if文などで使用するラベル番号
 
     char* name;
+    Type* type; // 型
 
     // if ("condition") "then" else "els"
     Node* condition;
@@ -106,21 +132,24 @@ struct Node {
     Node* increment;
     Node* body;
 
+    // function
+    Type* return_type;
     Vec* args;
+
     Vec* block;
 };
 
-typedef struct LVar LVar;
-// ローカル変数の型
-struct LVar {
-    LVar* next; // 次の変数かNULL
+typedef struct Var Var;
+// 変数
+struct Var {
+    Type* type;
     char* name; // 変数名
     int len; // 変数名の長さ
     int offset; // RBPからのオフセット
 };
 
-extern Node* code[100];
-void program();
+extern Token* token;
+Vec* program();
 
 //
 // codegen.c

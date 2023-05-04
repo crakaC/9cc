@@ -22,9 +22,9 @@ CFLAGS="-std=c11 -static"
 cc $CFLAGS -c -o foo.o test/foo.c
 
 assert 7 'int main(){ foo(1, 2, 4); }'
-assert 3 'int sum(x, y){return x + y;} int main(){return sum(1, 2);}'
+assert 3 'int sum(int x, int y){return x + y;} int main(){return sum(1, 2);}'
 assert 55 "
-int fib(x){
+int fib(int x){
     if(x <= 2){
         return 1;
     } else {
@@ -35,8 +35,8 @@ int main(){
     return fib(10);
 }"
 assert 1 "
-int func1(y){ return y;}
-int func2(x, y){return x;}
+int func1(int y){ return y;}
+int func2(int x, int y){return x;}
 int main(){return func2(1, 2);}
 "
 

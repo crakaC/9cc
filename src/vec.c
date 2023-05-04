@@ -17,3 +17,7 @@ void vec_push(Vec* v, void* element) {
     v->data[v->size] = element;
     v->size++;
 }
+
+void* vec_last(Vec* v) {
+    return v->data[v->size - 1];
+}

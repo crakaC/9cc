@@ -82,7 +82,7 @@ bool at_eof() {
 }
 
 // 新しいトークンを作成してcurにつなげる
-Token* new_token(TokenKind kind, Token* cur, char* str, int len) {
+static Token* new_token(TokenKind kind, Token* cur, char* str, int len) {
     Token* tok = calloc(1, sizeof(Token));
     tok->kind = kind;
     tok->str = str;
@@ -95,7 +95,7 @@ bool starts_with(char* p, char* q) {
     return memcmp(p, q, strlen(q)) == 0;
 }
 
-void dump() {
+static void dump() {
     for (Token* t = token; t; t = t->next) {
         char* s = calloc(t->len, sizeof(char));
         strncpy(s, t->str, t->len);
@@ -103,13 +103,13 @@ void dump() {
     }
 }
 
-void drop_space(char** p) {
+static void drop_space(char** p) {
     while (**p && isspace(**p)) {
         (*p)++;
     }
 }
 
-bool can_tokenize(char* p, char* word) {
+static bool can_tokenize(char* p, char* word) {
     int len = strlen(word);
     return starts_with(p, word) && !isalnum(p[len]);
 }

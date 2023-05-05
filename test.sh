@@ -15,7 +15,9 @@ assert(){
         exit 1
     fi
 }
-assert 3 "int x; int y; x = 3; y = &x; return *y;"
+assert 2 "int x; int* y; int** z; y = &x; z = &y; **z = 2; return x;"
+assert 1 "int x; int* y; x = 0; y = &x; *y = 1; return x;"
+assert 3 "int x; int* y; x = 3; y = &x; return *y;"
 
 assert 1 "65535 % 65536; 1 % 2;"
 assert 3 "8 % 5;"

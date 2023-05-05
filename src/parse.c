@@ -161,7 +161,7 @@ static Node* stmt() {
             node->els = stmt();
         }
     } else if (consume_token(TK_INT)) {
-        node = new_variable(consume_ident(), int_type());
+        node = new_variable(consume_ident(), consume_ptr_decl(int_type()));
         expect(";");
     } else {
         node = expr();

@@ -21,6 +21,16 @@ make
 CFLAGS="-std=c11 -static"
 cc $CFLAGS -c -o foo.o test/foo.c
 
+assert 42 "
+    void result(int* x){ 
+        *x = 42;
+    }
+    int main(){ 
+        int ans; 
+        return result(&ans);
+    }
+"
+
 assert 7 'int main(){ foo(1, 2, 4); }'
 assert 3 'int sum(int x, int y){return x + y;} int main(){return sum(1, 2);}'
 assert 55 "

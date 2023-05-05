@@ -129,6 +129,11 @@ void tokenize(char* p) {
             p += 3;
             continue;
         }
+        if (can_tokenize(p, "void")) {
+            cur = new_token(TK_VOID, cur, p, 4);
+            p += 4;
+            continue;
+        }
         if (can_tokenize(p, "return")) {
             cur = new_token(TK_RETURN, cur, p, 6);
             p += 6;

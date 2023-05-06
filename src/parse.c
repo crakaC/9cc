@@ -280,6 +280,7 @@ static Node* primary() {
             error("lvar %s not found.\n", tok->str);
         }
         node->name = strndup(lvar->name, lvar->len);
+        node->type = lvar->type;
         node->offset = lvar->offset;
         return node;
     }

@@ -28,9 +28,14 @@ test:
 	$(docker-run) make
 	$(docker-run) ./test.sh
 
-.PHONY: test-call
-test-call:
-	$(docker-run) ./test_call.sh
+.PHONY: test-ptr
+test-ptr:
+	$(docker-run) ./test_ptr.sh
+
+.PHONY: test-alloc
+test-alloc:
+	$(docker-run) ./test_alloc.sh
+
 
 .PHONY: docker-build
 docker-build:

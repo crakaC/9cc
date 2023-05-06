@@ -17,6 +17,10 @@ static void emit_noindent(char* fmt, ...) {
     printf("\n");
 }
 
+static bool is_ptr(Node* node) {
+    return node->type != NULL && node->type->ptr_to != NULL;
+}
+
 static void gen_lval(Node* node) {
     if (node->kind == ND_DEREF) {
         gen(node->lhs);
@@ -25,8 +29,7 @@ static void gen_lval(Node* node) {
     if (node->kind != ND_LVAR) {
         error("Unexpected node type");
     }
-    emit("mov rax, rbp");
-    emit("sub rax, %d", node->offset);
+    emit("lea rax, [rbp-%d]", node->offset);
     emit("push rax");
 }
 
@@ -138,9 +141,10 @@ void gen(Node* node) {
         return;
     case ND_FUNC:
         prologue(node->name);
-        // TODO スタック領域に色々確保したりする
+        // TODO スタック領域に必要な分だけ確保する。
         emit("sub rsp, 208"); // 仮
         for (int i = 0; i < node->args->size; i++) {
+            // レジスタに入っている引数をスタック領域にコピーする
             emit("mov [rbp-%d], %s", (i + 1) * 8, arg_regs[i]);
         }
         gen(node->body);
@@ -184,9 +188,15 @@ void gen(Node* node) {
         emit("movzb rax, al");
         break;
     case ND_ADD:
+        if (is_ptr(node->lhs)) {
+            emit("imul rdi, %d", node->lhs->type->ptr_to->size);
+        }
         emit("add rax, rdi");
         break;
     case ND_SUB:
+        if (is_ptr(node->lhs)) {
+            emit("imul rdi, %d", node->lhs->type->ptr_to->size);
+        }
         emit("sub rax, rdi");
         break;
     case ND_MUL:
